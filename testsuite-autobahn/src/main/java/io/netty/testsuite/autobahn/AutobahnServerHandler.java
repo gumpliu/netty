@@ -127,7 +127,7 @@ public class AutobahnServerHandler extends ChannelInboundHandlerAdapter {
             setContentLength(res, res.content().readableBytes());
         }
 
-        // Send the response and close the connection if necessary.
+        // Send the response and close the connection if necessary. 发送响应并在必要时关闭连接。
         ChannelFuture f = ctx.channel().writeAndFlush(res);
         if (!isKeepAlive(req) || res.status().code() != 200) {
             f.addListener(ChannelFutureListener.CLOSE);

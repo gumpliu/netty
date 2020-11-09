@@ -59,7 +59,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioEventLoop.class);
 
     private static final int CLEANUP_INTERVAL = 256; // XXX Hard-coded value, but won't need customization.
-
+    /** Netty的 JDK SelectionKey优化开关,默认关闭,设置true开启,性能优化开关 **/
     private static final boolean DISABLE_KEY_SET_OPTIMIZATION =
             SystemPropertyUtil.getBoolean("io.netty.noKeySetOptimization", false);
 
@@ -216,6 +216,10 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     if (PlatformDependent.javaVersion() >= 9 && PlatformDependent.hasUnsafe()) {
                         // Let us try to use sun.misc.Unsafe to replace the SelectionKeySet.
                         // This allows us to also do this in Java9+ without any extra flags.
+                        //让我们试试利用sun.misc。替换SelectionKeySet是不安全的。
+                        //这允许我们在Java9+中不需要任何额外的标志也可以这样做。
+                        //todo sun.nio.ch.SelectorImpl
+                        // 中Set<SelectionKey> selectedKeys, Set<SelectionKey> publicSelectedKeys 替换成 SelectedSelectionKeySet
                         long selectedKeysFieldOffset = PlatformDependent.objectFieldOffset(selectedKeysField);
                         long publicSelectedKeysFieldOffset =
                                 PlatformDependent.objectFieldOffset(publicSelectedKeysField);
@@ -228,6 +232,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                             return null;
                         }
                         // We could not retrieve the offset, lets try reflection as last-resort.
+                        // 我们不能检索偏移量，让我们尝试反射作为最后的手段。
                     }
 
                     Throwable cause = ReflectionUtil.trySetAccessible(selectedKeysField, true);
@@ -444,7 +449,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         continue;
 
                     case SelectStrategy.BUSY_WAIT:
-                        // fall-through to SELECT since the busy-wait is not supported with NIO
+                        // fall-through to SELECT since the busy-wait is not supported with NIOfall-through to SELECT since the busy-wait is not supported with NIO
 
                     case SelectStrategy.SELECT:
                         long curDeadlineNanos = nextScheduledTaskDeadlineNanos();
@@ -459,6 +464,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         } finally {
                             // This update is just to help block unnecessary selector wakeups
                             // so use of lazySet is ok (no race condition)
+                            /**这个更新只是为了帮助阻止不必要的选择器唤醒,所以使用lazySet是可以的(没有竞争条件) **/
                             nextWakeupNanos.lazySet(AWAKE);
                         }
                         // fall through
@@ -646,6 +652,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         for (int i = 0; i < selectedKeys.size; ++i) {
             final SelectionKey k = selectedKeys.keys[i];
             // null out entry in the array to allow to have it GC'ed once the Channel close
+            // 空出数组中的项，以便在通道关闭后对其进行GC
             // See https://github.com/netty/netty/issues/2363
             selectedKeys.keys[i] = null;
 
@@ -661,6 +668,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             if (needsToSelectAgain) {
                 // null out entries in the array to allow to have it GC'ed once the Channel close
+                // 空出数组中的项，以便在通道关闭后对其进行GC
                 // See https://github.com/netty/netty/issues/2363
                 selectedKeys.reset(i + 1);
 
@@ -697,8 +705,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             int readyOps = k.readyOps();
             // We first need to call finishConnect() before try to trigger a read(...) or write(...) as otherwise
             // the NIO JDK channel implementation may throw a NotYetConnectedException.
+            // 我们首先需要调用finishConnect()，然后尝试触发读(…)或写(…)否则
+            // NIO JDK通道实现可能抛出NotYetConnectedException异常。
             if ((readyOps & SelectionKey.OP_CONNECT) != 0) {
                 // remove OP_CONNECT as otherwise Selector.select(..) will always return without blocking
+                // 删除OP_CONNECT，否则Selector.select(..)将始终不阻塞返回
                 // See https://github.com/netty/netty/issues/924
                 int ops = k.interestOps();
                 ops &= ~SelectionKey.OP_CONNECT;
@@ -708,12 +719,15 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             }
 
             // Process OP_WRITE first as we may be able to write some queued buffers and so free memory.
+            // 先处理OP_WRITE，因为我们可以写一些队列缓冲区，这样就可以释放内存。
             if ((readyOps & SelectionKey.OP_WRITE) != 0) {
                 // Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write
+                // 调用forceFlush，它还会在没有东西可写时清除OP_WRITE
                 ch.unsafe().forceFlush();
             }
 
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
+            // 还要检查readOps是否为0，以解决JDK中可能导致的错误
             // to a spin loop
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
                 unsafe.read();

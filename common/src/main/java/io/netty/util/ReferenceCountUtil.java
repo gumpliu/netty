@@ -70,6 +70,9 @@ public final class ReferenceCountUtil {
      * Tries to call {@link ReferenceCounted#touch(Object)} if the specified message implements
      * {@link ReferenceCounted}.  If the specified message doesn't implement {@link ReferenceCounted},
      * this method does nothing.
+     * 如果指定的消息实现了，尝试调用{@link ReferenceCounted#touch(Object)}
+     * {@link ReferenceCounted}。如果指定的消息没有实现{@link ReferenceCounted}，这个方法什么也不做。
+     * todo 不明白 ？？？
      */
     @SuppressWarnings("unchecked")
     public static <T> T touch(T msg, Object hint) {

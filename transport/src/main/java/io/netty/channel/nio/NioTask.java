@@ -27,6 +27,7 @@ import java.nio.channels.Selector;
 public interface NioTask<C extends SelectableChannel> {
     /**
      * Invoked when the {@link SelectableChannel} has been selected by the {@link Selector}.
+     * 当{@link SelectableChannel}被{@link Selector}选中时，nvoked。
      */
     void channelReady(C ch, SelectionKey key) throws Exception;
 

@@ -74,6 +74,10 @@ import static java.lang.Math.min;
  * <p>
  * You can disable the use of {@code sun.misc.Unsafe} if you specify
  * the system property <strong>io.netty.noUnsafe</strong>.
+ *
+ * 检测特定于当前运行时环境的各种属性的实用程序，例如Java版本和{@code sun.misc的可用性。不安全}对象。
+ * <p>你可以禁用使用{@code sun.misc。如果指定系统属性<strong>io.net . nounsafe </strong>，则不安全}。
+ *
  */
 public final class PlatformDependent {
 

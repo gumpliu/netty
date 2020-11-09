@@ -376,6 +376,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     private void invokeChannelRead(Object msg) {
         if (invokeHandler()) {
             try {
+                /** 调用具体的ChannelInboundHandler实现。**/
                 ((ChannelInboundHandler) handler()).channelRead(this, msg);
             } catch (Throwable t) {
                 invokeExceptionCaught(t);
@@ -894,9 +895,11 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     private static boolean skipContext(
             AbstractChannelHandlerContext ctx, EventExecutor currentExecutor, int mask, int onlyMask) {
         // Ensure we correctly handle MASK_EXCEPTION_CAUGHT which is not included in the MASK_EXCEPTION_CAUGHT
+        // 确保我们正确地处理MASK_EXCEPTION_CAUGHT，它不包含在MASK_EXCEPTION_CAUGHT中
         return (ctx.executionMask & (onlyMask | mask)) == 0 ||
                 // We can only skip if the EventExecutor is the same as otherwise we need to ensure we offload
                 // everything to preserve ordering.
+                // 只有当EventExecutor与其他事件相同时，我们才能跳过，否则我们需要确保卸载一切为了保持秩序
                 //
                 // See https://github.com/netty/netty/issues/10067
                 (ctx.executor() == currentExecutor && (ctx.executionMask & mask) == 0);

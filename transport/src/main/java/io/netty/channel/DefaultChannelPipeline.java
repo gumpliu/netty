@@ -647,6 +647,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             firstRegistration = false;
             // We are now registered to the EventLoop. It's time to call the callbacks for the ChannelHandlers,
             // that were added before the registration was done.
+            /** 我们现在注册到EventLoop。现在是时候调用channelhandler的回调函数*了，注册前添加的。*/
             callHandlerAddedForAllHandlers();
         }
     }
@@ -1110,6 +1111,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         // This must happen outside of the synchronized(...) block as otherwise handlerAdded(...) may be called while
         // holding the lock and so produce a deadlock if handlerAdded(...) will try to add another handler from outside
         // the EventLoop.
+        /**
+         * 这必须发生在synchronized(…)块之外，否则当持有锁时handleradd(…)可能被调用，因此如果handleradd(…)
+         * 试图从外部添加另一个处理程序，就会产生死锁EventLoop。
+         */
         PendingHandlerCallback task = pendingHandlerCallbackHead;
         while (task != null) {
             task.execute();

@@ -58,7 +58,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private boolean closeInitiated;
     private Throwable initialCloseCause;
 
-    /** Cache for the string representation of this channel */
+    /** Cache for the string representation of this channel 缓存此通道的字符串表示形式 */
     private boolean strValActive;
     private String strVal;
 
@@ -489,6 +489,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
                 // call was outside of the eventLoop
+                /** 检查通道是否仍然打开，因为它可以关闭时，在同一时间登记调用在eventLoop之外 **/
                 if (!promise.setUncancellable() || !ensureOpen(promise)) {
                     return;
                 }
@@ -499,19 +500,24 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
+                /** 确保我们在实际通知承诺之前调用handlerAdded(…)。这是必需的用户可能已经通过ChannelFutureListener中的管道触发事件。**/
                 pipeline.invokeHandlerAddedIfNeeded();
 
                 safeSetSuccess(promise);
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
+                /**
+                 * 仅在通道从未注册的情况下触发通道激活。这可以防止解雇
+                 * 如果信道被取消注册并重新注册，则多个通道激活。
+                 */
                 if (isActive()) {
                     if (firstRegistration) {
                         pipeline.fireChannelActive();
                     } else if (config().isAutoRead()) {
                         // This channel was registered before and autoRead() is set. This means we need to begin read
                         // again so that we process inbound data.
-                        //
+                        /**这个通道是在之前注册的，并且设置了autoRead()，这意味着我们需要开始读取，以便我们处理入站数据。 **/
                         // See https://github.com/netty/netty/issues/4805
                         beginRead();
                     }
